@@ -17,3 +17,9 @@ def health():
     return {
         "status": "healthy"
     }
+
+@app.get("/service")
+def service():
+    return {
+        "status": "running"
+    }
