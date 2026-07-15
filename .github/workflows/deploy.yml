@@ -47,3 +47,5 @@ jobs:
             --region=${{ vars.GCP_REGION }} \
             --platform=managed \
             --allow-unauthenticated
+            --set-env-vars="APP_NAME=Cloud Run Demo,ENVIRONMENT=production,VERSION=${{ github.sha }}"
+            --set-secrets="API_KEY=demo-api-key:latest"

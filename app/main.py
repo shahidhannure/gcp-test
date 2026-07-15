@@ -7,11 +7,13 @@ app = FastAPI()
 @app.get("/")
 def root():
     return {
-        "message": "Hello from Cloud Run!",
+        "application": os.getenv("APP_NAME"),
+        "environment": os.getenv("ENVIRONMENT"),
+        "version": os.getenv("VERSION"),
         "hostname": socket.gethostname(),
-        "environment": os.getenv("ENV", "local")
+        "secret_loaded": os.getenv("API_KEY") is not None
     }
-
+    
 @app.get("/health")
 def health():
     return {
