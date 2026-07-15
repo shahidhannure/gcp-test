@@ -46,6 +46,6 @@ jobs:
             --image=${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.ARTIFACT_REPOSITORY }}/cloudrun-demo:${{ github.sha }} \
             --region=${{ vars.GCP_REGION }} \
             --platform=managed \
-            --allow-unauthenticated
-            --set-env-vars="APP_NAME=Cloud Run Demo,ENVIRONMENT=production,VERSION=${{ github.sha }}"
+            --allow-unauthenticated \
+            --set-env-vars="APP_NAME=Cloud Run Demo,ENVIRONMENT=production,VERSION=${{ github.sha }}" \
             --set-secrets="API_KEY=demo-api-key:latest"
