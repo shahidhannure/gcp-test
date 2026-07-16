@@ -1,0 +1,64 @@
+name: Deploy to GKE
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PROJECT_ID: cloudrun-demo-502310
+  REGION: asia-south1
+  CLUSTER_NAME: cloudrun-gke-demo
+
+  REPOSITORY: cloudrun-demo
+  IMAGE_NAME: cloudrun-demo
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+        service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+    - name: Setup gcloud
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Configure Docker
+      run: |
+        gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+    - name: Build Docker Image
+      run: |
+        docker build \
+          -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+
+    - name: Push Docker Image
+      run: |
+        docker push \
+          ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+    - name: Get GKE Credentials
+      run: |
+        gcloud container clusters get-credentials ${{ env.CLUSTER_NAME }} \
+          --region ${{ env.REGION }}
+
+    - name: Deploy to GKE
+      run: |
+        kubectl set image deployment/cloudrun-demo \
+        cloudrun-demo=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+    - name: Wait for Rollout
+      run: |
+        kubectl rollout status deployment/cloudrun-demo --timeout=5m
